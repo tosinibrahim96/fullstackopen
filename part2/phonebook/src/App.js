@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import FormInput from './components/FormInput';
 import SearchInput from './components/SearchInput';
 import ContactInfo from './components/ContactInfo';
 import './App.css';
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', number: '040-123456', id: 1 },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 },
-  ]);
+  const [persons, setPersons] = useState([]);
 
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [newSearchText, setSearchText] = useState('');
+
+  useEffect(() => {
+    axios.get('http://localhost:3001/persons').then((response) => {
+      console.log({response})
+      setPersons(response.data);
+    });
+  }, []);
 
   const handleNameChange = (e) => {
     setNewName(e.target.value);
@@ -102,7 +105,7 @@ const App = () => {
       />
       <ul>
         {items.map(({ name, number, id }) => {
-          return <ContactInfo key={id} name={name} number={number}/>;
+          return <ContactInfo key={id} name={name} number={number} />;
         })}
       </ul>
     </div>
