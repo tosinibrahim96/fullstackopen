@@ -18,7 +18,7 @@ const WeatherDetails = ({ city }) => {
           setWeatherDetails(response.data);
         }
       });
-  }, []);
+  }, [city]);
 
   return weatherDetails.current ? (
     <div className='country-item'>
