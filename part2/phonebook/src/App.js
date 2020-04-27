@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import contactService from './services/contacts';
 import FormInput from './components/FormInput';
 import SearchInput from './components/SearchInput';
 import ContactInfo from './components/ContactInfo';
@@ -13,8 +14,8 @@ const App = () => {
   const [newSearchText, setSearchText] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:3001/persons').then((response) => {
-      setPersons(response.data);
+    contactService.getAll().then((initialContacts) => {
+      setPersons(initialContacts);
     });
   }, []);
 
@@ -39,6 +40,14 @@ const App = () => {
     );
   };
 
+  const addNewContact = (contact) => {
+    contactService.create(contact).then((returnedContact) => {
+      setPersons(persons.concat(returnedContact));
+      setNewName('');
+      setNewNumber('');
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const result = nameAlreadyExist(newName);
@@ -46,14 +55,11 @@ const App = () => {
     if (result) {
       alert(`${result.name} is already added to phonebook`);
     } else {
-      const newList = persons.concat({
+      const newContact = {
         name: newName,
         number: newNumber,
-        id: persons.length + 1,
-      });
-      setPersons(newList);
-      setNewName('');
-      setNewNumber('');
+      };
+      addNewContact(newContact);
     }
   };
 
