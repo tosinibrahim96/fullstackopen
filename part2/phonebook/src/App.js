@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import contactService from './services/contacts';
 import FormInput from './components/FormInput';
 import SearchInput from './components/SearchInput';
@@ -31,6 +30,17 @@ const App = () => {
     setSearchText(e.target.value);
   };
 
+  const handleDeleteContact = (id) => {
+    if (window.confirm('Are you sure you want to delete?')) {
+      contactService.deleteContact(id).then(() => {
+        const filteredList = persons.filter((person) => {
+          return person.id !== id;
+        });
+        setPersons(filteredList);
+      });
+    }
+  };
+
   const nameAlreadyExist = (newName) => {
     const lowerCaseSpacelessName = newName.toLowerCase().replace(/ /g, '');
 
@@ -48,12 +58,30 @@ const App = () => {
     });
   };
 
+  const updateExistingContact = (id, updatedData) => {
+    contactService.update(id, updatedData).then((returnedContact) => {
+      setPersons(
+        persons.map((person) => (person.id !== id ? person : returnedContact))
+      );
+      setNewName('');
+      setNewNumber('');
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const result = nameAlreadyExist(newName);
 
     if (result) {
-      alert(`${result.name} is already added to phonebook`);
+      if (
+        window.confirm(`${result.name} already exist. Replace the old number?`)
+      ) {
+        const updatedContactInfo = {
+          name: newName,
+          number: newNumber,
+        };
+        updateExistingContact(result.id, updatedContactInfo);
+      }
     } else {
       const newContact = {
         name: newName,
@@ -110,7 +138,15 @@ const App = () => {
       />
       <ul>
         {items.map(({ name, number, id }) => {
-          return <ContactInfo key={id} name={name} number={number} />;
+          return (
+            <ContactInfo
+              key={id}
+              name={name}
+              number={number}
+              id={id}
+              handleDelete={handleDeleteContact}
+            />
+          );
         })}
       </ul>
     </div>
