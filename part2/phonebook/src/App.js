@@ -3,11 +3,12 @@ import contactService from './services/contacts';
 import FormInput from './components/FormInput';
 import SearchInput from './components/SearchInput';
 import ContactInfo from './components/ContactInfo';
+import Notification from './components/Notification';
 import './App.css';
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-
+  const [notificationInfo, setNotificationInfo] = useState({});
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [newSearchText, setSearchText] = useState('');
@@ -30,14 +31,31 @@ const App = () => {
     setSearchText(e.target.value);
   };
 
+  const displayNotification = (message, color) => {
+    setNotificationInfo({
+      ...notificationInfo,
+      message,
+      color,
+    });
+    setTimeout(() => {
+      setNotificationInfo({});
+    }, 3000);
+  };
+
   const handleDeleteContact = (id) => {
     if (window.confirm('Are you sure you want to delete?')) {
-      contactService.deleteContact(id).then(() => {
-        const filteredList = persons.filter((person) => {
-          return person.id !== id;
+      contactService
+        .deleteContact(id)
+        .then(() => {
+          const filteredList = persons.filter((person) => {
+            return person.id !== id;
+          });
+          setPersons(filteredList);
+          displayNotification('Contact deleted successfully', 'green');
+        })
+        .catch((error) => {
+          displayNotification('Contact already deleted from server', 'red');
         });
-        setPersons(filteredList);
-      });
     }
   };
 
@@ -53,6 +71,7 @@ const App = () => {
   const addNewContact = (contact) => {
     contactService.create(contact).then((returnedContact) => {
       setPersons(persons.concat(returnedContact));
+      displayNotification('Contact added successfully', 'green');
       setNewName('');
       setNewNumber('');
     });
@@ -63,6 +82,7 @@ const App = () => {
       setPersons(
         persons.map((person) => (person.id !== id ? person : returnedContact))
       );
+      displayNotification('Contact updated successfully', 'green');
       setNewName('');
       setNewNumber('');
     });
@@ -109,6 +129,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification notificationInfo={notificationInfo} />
       <form onSubmit={handleSubmit}>
         <FormInput
           value={newName}
